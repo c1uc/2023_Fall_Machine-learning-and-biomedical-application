@@ -5,38 +5,51 @@ import shutil
 from PIL import Image
 
 d = dict()
-for _ in glob.glob('./sample/images/*.png', root_dir='./'):
-    d[_.split('\\')[-1]] = _
+for _ in glob.glob('sample_dataset/images/*.png', root_dir='./'):
+    d[_.split('\\')[-1]] = dict()
+    d[_.split('\\')[-1]]['path'] = _
 
 res = []
 
-with open('./sample/sample_labels.csv', 'r') as f:
+with open('sample_dataset/sample_labels.csv', 'r') as f:
     reader = csv.reader(f)
     data = list(reader)
     for _ in data:
         if _[0] == 'Image Index':
             continue
         if _[1] == 'No Finding':
-            res.append([_[0], 'Healthy'])
-        if _[1] == 'Cardiomegaly':
-            res.append([_[0], 'Cardiomegaly'])
+            d[_[0]]['label'] = ['Healthy']
+        else:
+            d[_[0]]['label'] = _[1].split('|')
 
 
-if not os.path.exists('./sample/dataset'):
-    os.mkdir('./sample/dataset')
+if not os.path.exists('sample_dataset/dataset'):
+    os.mkdir('sample_dataset/dataset')
 
-if not os.path.exists('./sample/dataset/Healthy'):
-    os.mkdir('./sample/dataset/Healthy')
+labels = [
+    'Healthy',
+    'Atelectasis',
+    'Consolidation',
+    'Infiltration',
+    'Pneumothorax',
+    'Edema',
+    'Emphysema',
+    'Fibrosis',
+    'Effusion',
+    'Pneumonia',
+    'Pleural_Thickening',
+    'Cardiomegaly',
+    'Nodule',
+    'Mass',
+    'Hernia'
+]
 
-if not os.path.exists('./sample/dataset/Cardiomegaly'):
-    os.mkdir('./sample/dataset/Cardiomegaly')
+for _ in labels:
+    if not os.path.exists('./sample_dataset/dataset/' + _):
+        os.mkdir('./sample_dataset/dataset/' + _)
 
-for _ in res:
-    img = Image.open(d[_[0]])
+for _ in d.keys():
+    img = Image.open(d[_]['path'])
     img = img.convert('RGB')
-    if _[1] == 'Healthy':
-        img.save('./sample/dataset/Healthy/' + _[0].replace('.png', '.jpg'))
-    elif _[1] == 'Cardiomegaly':
-        img.save('./sample/dataset/Cardiomegaly/' + _[0].replace('.png', '.jpg'))
-
-# print(f'Wrote {len(res)} lines to labels.txt, total {sum([int(_[1] == "Cardiomegaly") for _ in res])} positive samples.')
+    for __ in d[_]['label']:
+        img.save('./sample_dataset/dataset/' + __ + '/' + _.replace('.png', '.jpg'))
